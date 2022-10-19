@@ -85,5 +85,5 @@
 		]
 	},
     "url": "https://github.com/kandashi/midi-srd",
-    "manifest": "https://github.com/kandashi/midi-srd/releases/latest/download/module.json",
+    "manifest": "https://github.com/thatlonelybugbear/midi-srd/master/module.json",
     "download": "https://github.com/thatlonelybugbear/midi-srd/releases/download/10.0.1/midi-srd.zip"
