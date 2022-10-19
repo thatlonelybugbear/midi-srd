@@ -28,13 +28,13 @@ class MidiMacros {
      * @param {Actor5e} actor 
      */
     static async deleteTemplates(flagName, actor) {
-        let removeTemplates = canvas.templates.placeables.filter(i => i.data.flags["midi-srd"]?.[flagName]?.ActorId === actor.id);
+        let removeTemplates = canvas.templates.placeables.filter(i => i.document.flags["midi-srd"]?.[flagName]?.ActorId === actor.id);
         let templateArray = removeTemplates.map(function (w) { return w.id })
         if (removeTemplates) await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", templateArray)
     };
 
     static async deleteTokens(flagName, actor) {
-        let removeTokens = canvas.tokens.placeables.filter(i => i.data.flags["midi-srd"]?.[flagName]?.ActorId === actor.id);
+        let removeTokens = canvas.tokens.placeables.filter(i => i.document.flags["midi-srd"]?.[flagName]?.ActorId === actor.id);
         let tokenArray = removeTokens.map(function (w) { return w.id })
         if (removeTokens) await canvas.scene.deleteEmbeddedDocuments("Token", tokenArray)
     };
@@ -45,8 +45,8 @@ class MidiMacros {
      * @param {Actor5e} actor 
      */
     static async deleteItems(flagName, actor) {
-        let items = actor.items.filter(i => i.data.flags["midi-srd"]?.[flagName] === actor.id)
-        let itemArray = items.map(function (w) { return w.data._id })
+        let items = actor.items.filter(i => i.flags["midi-srd"]?.[flagName] === actor.id)
+        let itemArray = items.map(function (w) { return w._id })
         if (itemArray.length > 0) await actor.deleteEmbeddedDocuments("Item", [itemArray]);
     }
 
@@ -76,8 +76,8 @@ class MidiMacros {
      * @param {Boolean} animate Animate move, default false
      */
     static async moveToken(token, maxRange, name, animate = false){
-        let snap = token.data.width/2 === 0 ? 1 : -1
-        let {x, y} = await this.warpgateCrosshairs(token, maxRange, name, token.data.img, token.data, snap)
+        let snap = token.document.width/2 === 0 ? 1 : -1
+        let {x, y} = await this.warpgateCrosshairs(token, maxRange, name, token.document.texture.src, token.document, snap)
         let pos = canvas.grid.getSnappedPosition(x-5, y-5, 1)
         await token.document.update(pos, {animate : animate})
     }
@@ -120,7 +120,7 @@ class MidiMacros {
         const callbacks = {
             show: checkDistance
         }
-        const location = await warpgate.crosshairs.show({ size: tokenData.width, icon: source.data.img, label: '0 ft.', interval: snap }, callbacks)
+        const location = await warpgate.crosshairs.show({ size: tokenData.width, icon: source.document.texture.src, label: '0 ft.', interval: snap }, callbacks)
         console.log(location)
 
         if (location.cancelled) return false;
@@ -134,13 +134,13 @@ class MidiMacros {
     static async aid(args) {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         let buf = (parseInt(args[1]) - 1) * 5;
-        let curHP = actor.data.data.attributes.hp.value;
-        let curMax = actor.data.data.attributes.hp.max;
+        let curHP = actor.getRollData().attributes.hp.value;
+        let curMax = actor.getRollData().attributes.hp.max;
 
         if (args[0] === "on") {
-            await actor.update({ "data.attributes.hp.value": curHP + buf })
+            await actor.update({ "system.attributes.hp.value": curHP + buf })
         } else if (curHP > (curMax)) {
-            await actor.update({ "data.attributes.hp.value": curMax })
+            await actor.update({ "system.attributes.hp.value": curMax })
 
         }
     }
@@ -162,8 +162,8 @@ class MidiMacros {
                                 return;
                             }
                             let copy_item = duplicate(DAEitem);
-                            await DAE.setFlag(actor, 'AlterSelfSpell', copy_item.data.damage.parts[0][0]); //set flag of previous value
-                            copy_item.data.damage.parts[0][0] = "1d6 +@mod"; //replace with new value
+                            await DAE.setFlag(actor, 'AlterSelfSpell', copy_item.system.damage.parts[0][0]); //set flag of previous value
+                            copy_item.system.damage.parts[0][0] = "1d6 +@mod"; //replace with new value
                             await await actor.updateEmbeddedDocuments("Item", [copy_item]); //update item
                             await ChatMessage.create({ content: "Unarmed strike is altered" });
                         }
@@ -179,7 +179,7 @@ class MidiMacros {
             let damage = DAE.getFlag(actor, 'AlterSelfSpell'); // find flag with previous values
             if (!DAEitem) return;
             let copy_item = duplicate(DAEitem);
-            copy_item.data.damage.parts[0][0] = damage; //replace with old value
+            copy_item.system.damage.parts[0][0] = damage; //replace with old value
             await await actor.updateEmbeddedDocuments("Item", [copy_item]); //update item
             await DAE.unsetFlag(actor, 'world', 'AlterSelfSpell',); //remove flag
             await ChatMessage.create({ content: `Alter Self expired, unarmed strike returned` });
@@ -214,7 +214,7 @@ class MidiMacros {
             let index = pack.index.find(i => i.name === dialog.actor.name)
             let compendium = await pack.getDocument(index._id)
             let updates = {
-                token: compendium.data.token,
+                token: compendium.protorypeToken,
                 actor: compendium.toObject()
             }
             await warpgate.spawn("MidiSRD", updates, {}, { controllingActor: actor });
@@ -248,9 +248,9 @@ class MidiMacros {
             if (!game.actors.getName("MidiSRD")) { await Actor.create({ name: "MidiSRD", type: "npc" }) }
             const sourceItem = await fromUuid(lArgs.origin)
             texture = texture || sourceItem.img
-            const summonerDc = actor.data.data.attributes.spelldc;
+            const summonerDc = actor.system.attributes.spelldc;
             const summonerAttack = summonerDc - 8;
-            const summonerMod = getProperty(actor, `data.data.abilities.${getProperty(actor, 'data.data.attributes.spellcasting')}.mod`)
+            const summonerMod = getProperty(actor, `system.abilities.${getProperty(actor, 'system.attributes.spellcasting')}.mod`)
             let fistScale = '';
             let graspScale = '';
             if ((lArgs.powerLevel - 5) > 0) {
@@ -263,17 +263,17 @@ class MidiMacros {
                 token: { "name": "Arcane Hand", "img": texture, height: 2, width: 2, "flags": { "midi-srd": { "ArcaneHand": { "ActorId": actor.id } } } },
                 actor: {
                     "name": "Arcane Hand",
-                    "data.attributes.hp": { value: actor.data.data.attributes.hp.max, max: actor.data.data.attributes.hp.max },
+                    "system.attributes.hp": { value: actor.system.attributes.hp.max, max: actor.system.attributes.hp.max },
                 },
                 embedded: {
                     Item: {
                         "Clenched Fist": {
-                            'data.attackBonus': `- @mod - @prof + ${summonerAttack}`,
-                            'data.damage.parts': [[`4d8 ${fistScale}`, 'force']],
+                            'system.attackBonus': `- @mod - @prof + ${summonerAttack}`,
+                            'system.damage.parts': [[`4d8 ${fistScale}`, 'force']],
                             "type": "weapon"
                         },
                         "Grasping Hand": {
-                            'data.damage.parts': [[`2d6 ${graspScale} + ${summonerMod}`, 'bludgeoning']],
+                            'system.damage.parts': [[`2d6 ${graspScale} + ${summonerMod}`, 'bludgeoning']],
                             "type": "weapon"
                         }
                     }
@@ -294,7 +294,7 @@ class MidiMacros {
 
         let casterToken = canvas.tokens.get(lArgs.tokenId) || token;
         const DAEitem = lArgs.efData.flags.dae.itemData
-        const saveData = DAEitem.data.save
+        const saveData = DAEitem.system.save
         /**
          * Create Arcane Sword item in inventory
          */
@@ -332,7 +332,7 @@ class MidiMacros {
                 [{
                     "name": "Summoned Arcane Sword",
                     "type": "weapon",
-                    "data": {
+                    "system": {
                         "quantity": 1,
                         "activation": {
                             "type": "action",
@@ -348,7 +348,7 @@ class MidiMacros {
                             "long": null,
                             "units": ""
                         },
-                        "ability": DAEitem.data.ability,
+                        "ability": DAEitem.system.ability,
                         "actionType": "msak",
                         "attackBonus": "0",
                         "chatFlavor": "",
@@ -440,7 +440,7 @@ class MidiMacros {
         if (!game.modules.get("advanced-macros")?.active) ui.notifications.error("Please enable the Advanced Macros module")
         const { actor, token, lArgs } = MidiMacros.targets(args)
         const DAEitem = lArgs.efData.flags.dae.itemData
-        const saveData = DAEitem.data.save
+        const saveData = DAEitem.system.save
         /**
          * Create Call Lightning Bolt item in inventory
          */
@@ -462,7 +462,7 @@ class MidiMacros {
                 [{
                     "name": "Call Lightning - bolt",
                     "type": "spell",
-                    "data": {
+                    "system": {
                         "description": {
                             "value": "<p><span style=\"color: #191813; font-size: 13px;\">A bolt of lightning flashes down from the cloud to that point. Each creature within 5 feet of that point must make a Dexterity saving throw. A creature takes 3d10 lightning damage on a failed save, or half as much damage on a successful one.</span></p>"
                         },
@@ -480,7 +480,7 @@ class MidiMacros {
                         "damage": {
                             "parts": [
                                 [
-                                    `${DAEitem.data.level}d10`,
+                                    `${DAEitem.system.level}d10`,
                                     "lightning"
                                 ]
                             ],
@@ -684,7 +684,7 @@ class MidiMacros {
                                         value: "1",
                                     },
                                     {
-                                        key: "data.traits.dv.all",
+                                        key: "system.traits.dv.all",
                                         mode: 0,
                                         priority: 20,
                                         value: "1",
@@ -836,7 +836,7 @@ class MidiMacros {
         let compendium = await pack.getDocument(index._id)
 
         let updates = {
-            token: compendium.data.token,
+            token: compendium.prototypeToken,
             actor: compendium.toObject()
         }
         await warpgate.spawn("MidiSRD", updates, {}, { controllingActor: actor, duplicates: dialog.cycles });
@@ -858,8 +858,8 @@ class MidiMacros {
             };
 
             Hooks.once("createMeasuredTemplate", async (template) => {
-                let radius = canvas.grid.size * (template.data.distance / canvas.grid.grid.options.dimensions.distance)
-                circleWall(template.data.x, template.data.y, radius)
+                let radius = canvas.grid.size * (template.document.distance / canvas.grid.grid.options.dimensions.distance)
+                circleWall(template.document.x, template.document.y, radius)
 
                 await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", [template.id]);
             });
@@ -893,9 +893,9 @@ class MidiMacros {
 
         if (args[0] === "off") {
             async function removeWalls() {
-                let darkWalls = canvas.walls.placeables.filter(w => w.data.flags["midi-srd"]?.Darkness?.ActorId === actor.id)
+                let darkWalls = canvas.walls.placeables.filter(w => w.document.flags["midi-srd"]?.Darkness?.ActorId === actor.id)
                 let wallArray = darkWalls.map(function (w) {
-                    return w.data._id
+                    return w.document._id
                 })
                 await canvas.scene.deleteEmbeddedDocuments("Wall", wallArray)
             }
@@ -908,7 +908,7 @@ class MidiMacros {
 
         async function DivineWordApply(actor, targetHp) {
             if (targetHp <= 20) {
-                await actor.update({ "data.attributes.hp.value": 0 });
+                await actor.update({ "system.attributes.hp.value": 0 });
             } else {
                 if (targetHp <= 30) {
                     if (!hasStunned) await MidiMacros.addDfred("Stunned", actor);
@@ -931,7 +931,7 @@ class MidiMacros {
             }
         }
         if (args[0] === "on") {
-            DivineWordApply(actor, token.actor.data.data.attributes.hp.value)
+            DivineWordApply(actor, token.actor.system.attributes.hp.value)
         }
     }
 
@@ -950,8 +950,8 @@ class MidiMacros {
                             await DAE.setFlag(actor, 'enhanceAbility', {
                                 name: "bear",
                             });
-                            let effect = actor.effects.find(i => i.data.label === "Enhance Ability");
-                            let changes = effect.data.changes;
+                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
+                            let changes = effect.changes;
                             changes[1] = {
                                 key: "flags.midi-qol.advantage.ability.save.con",
                                 mode: 0,
@@ -960,7 +960,7 @@ class MidiMacros {
                             }
                             await effect.update({ changes });
                             await ChatMessage.create({ content: `${actor.name} gains ${amount} temp Hp` });
-                            await actor.update({ "data.attributes.hp.temp": amount });
+                            await actor.update({ "system.attributes.hp.temp": amount });
                         }
                     },
                     two: {
@@ -970,8 +970,8 @@ class MidiMacros {
                             await DAE.setFlag(actor, 'enhanceAbility', {
                                 name: "bull",
                             });
-                            let effect = actor.effects.find(i => i.data.label === "Enhance Ability");
-                            let changes = effect.data.changes;
+                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
+                            let changes = effect.changes;
                             changes[1] = {
                                 key: "flags.midi-qol.advantage.ability.check.str",
                                 mode: 0,
@@ -989,8 +989,8 @@ class MidiMacros {
                             await DAE.setFlag(actor, 'enhanceAbility', {
                                 name: "cat",
                             });
-                            let effect = actor.effects.find(i => i.data.label === "Enhance Ability");
-                            let changes = effect.data.changes;
+                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
+                            let changes = effect.changes;
                             changes[1] = {
                                 key: "flags.midi-qol.advantage.ability.check.dex",
                                 mode: 0,
@@ -1007,8 +1007,8 @@ class MidiMacros {
                             await DAE.setFlag(actor, 'enhanceAbility', {
                                 name: "eagle",
                             });
-                            let effect = actor.effects.find(i => i.data.label === "Enhance Ability");
-                            let changes = effect.data.changes;
+                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
+                            let changes = effect.changes;
                             changes[1] = {
                                 key: "flags.midi-qol.advantage.ability.check.cha",
                                 mode: 0,
@@ -1025,8 +1025,8 @@ class MidiMacros {
                             await DAE.setFlag(actor, 'enhanceAbility', {
                                 name: "fox",
                             });
-                            let effect = actor.effects.find(i => i.data.label === "Enhance Ability");
-                            let changes = effect.data.changes;
+                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
+                            let changes = effect.changes;
                             changes[1] = {
                                 key: "flags.midi-qol.advantage.ability.check.int",
                                 mode: 0,
@@ -1043,8 +1043,8 @@ class MidiMacros {
                             await DAE.setFlag(actor, 'enhanceAbility', {
                                 name: "owl",
                             });
-                            let effect = actor.effects.find(i => i.data.label === "Enhance Ability");
-                            let changes = effect.data.changes;
+                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
+                            let changes = effect.changes;
                             changes[1] = {
                                 key: "flags.midi-qol.advantage.ability.check.wis",
                                 mode: 0,
@@ -1068,8 +1068,8 @@ class MidiMacros {
 
     static async enlargeReduce(args) {
         const { actor, token, lArgs } = MidiMacros.targets(args)
-        let originalSize = token.data.width;
-        let mwak = actor.data.data.bonuses.mwak.damage;
+        let originalSize = token.document.width;
+        let mwak = actor.system.bonuses.mwak.damage;
 
         if (args[0] === "on") {
             new Dialog({
@@ -1080,7 +1080,7 @@ class MidiMacros {
                         callback: async () => {
                             let bonus = mwak + "+ 1d4";
                             let enlarge = (originalSize + 1);
-                            await actor.update({ "data.bonuses.mwak.damage": bonus });
+                            await actor.update({ "system.bonuses.mwak.damage": bonus });
                             await token.document.update({ "width": enlarge, "height": enlarge });
                             await DAE.setFlag(actor, 'enlageReduceSpell', {
                                 size: originalSize,
@@ -1095,7 +1095,7 @@ class MidiMacros {
                             let bonus = mwak + " -1d4";
                             let size = originalSize;
                             let newSize = (size > 1) ? (size - 1) : (size - 0.3);
-                            await actor.update({ "data.bonuses.mwak.damage": bonus });
+                            await actor.update({ "system.bonuses.mwak.damage": bonus });
                             await token.document.update({ "width": newSize, "height": newSize });
                             await DAE.setFlag(actor, 'enlageReduceSpell', {
                                 size: originalSize,
@@ -1109,7 +1109,7 @@ class MidiMacros {
         }
         if (args[0] === "off") {
             let flag = DAE.getFlag(actor, 'enlageReduceSpell');
-            await actor.update({ "data.bonuses.mwak.damage": flag.ogMwak });
+            await actor.update({ "system.bonuses.mwak.damage": flag.ogMwak });
             await token.document.update({ "width": flag.size, "height": flag.size });
             await DAE.unsetFlag(actor, 'enlageReduceSpell');
             await ChatMessage.create({ content: `${token.name} is returned to normal size` });
@@ -1253,10 +1253,10 @@ class MidiMacros {
         let compendium = await pack.getDocument(index._id)
 
         let updates = {
-            token: compendium.data.token,
+            token: compendium.prototypeToken,
             actor: compendium.toObject()
         }
-        updates.actor.data.details.type.value = dialog.inputs.find(i => !!i).toLowerCase()
+        updates.actor.system.details.type.value = dialog.inputs.find(i => !!i).toLowerCase()
         await warpgate.spawn("MidiSRD", updates, {}, { controllingActor: actor, });
     }
 
@@ -1269,16 +1269,16 @@ class MidiMacros {
                     one: {
                         label: "Warm",
                         callback: async () => {
-                            let resistances = duplicate(actor.data.data.traits.dr.value);
+                            let resistances = duplicate(actor.system.traits.dr.value);
                             resistances.push("cold");
-                            await actor.update({ "data.traits.dr.value": resistances });
+                            await actor.update({ "system.traits.dr.value": resistances });
                             await DAE.setFlag(actor, 'FireShield', "cold");
                             await ChatMessage.create({ content: `${actor.name} gains resistnace to cold` });
                             await actor.createEmbeddedDocuments("Item", [{
                                 "name": "Summoned Fire Shield",
                                 "type": "weapon",
                                 "img": "systems/dnd5e/icons/spells/protect-red-3.jpg",
-                                "data": {
+                                "system": {
                                     "source": "Fire Shield Spell",
                                     "activation": {
                                         "type": "special",
@@ -1303,16 +1303,16 @@ class MidiMacros {
                     two: {
                         label: "Cold",
                         callback: async () => {
-                            let resistances = duplicate(actor.data.data.traits.dr.value);
+                            let resistances = duplicate(actor.system.traits.dr.value);
                             resistances.push("fire");
-                            await actor.update({ "data.traits.dr.value": resistances });
+                            await actor.update({ "system.traits.dr.value": resistances });
                             await DAE.setFlag(actor, 'FireShield', "fire");
                             await ChatMessage.create({ content: `${actor.name} gains resistance to fire` });
                             await actor.createEmbeddedDocuments("Item", [{
                                 "name": "Summoned Fire Shield",
                                 "type": "weapon",
                                 "img": "systems/dnd5e/icons/spells/protect-blue-3.jpg",
-                                "data": {
+                                "system": {
                                     "source": "Fire Shield Spell",
                                     "activation": {
                                         "type": "special",
@@ -1340,10 +1340,10 @@ class MidiMacros {
         if (args[0] === "off") {
             let item = actor.items.getName("Summoned Fire Shield")
             let element = DAE.getFlag(actor, 'FireShield');
-            let resistances = actor.data.data.traits.dr.value;
+            let resistances = actor.system.traits.dr.value;
             const index = resistances.indexOf(element);
             resistances.splice(index, 1);
-            await actor.update({ "data.traits.dr.value": resistances });
+            await actor.update({ "system.traits.dr.value": resistances });
             await ChatMessage.create({ content: "Fire Shield expires on " + actor.name });
             await DAE.unsetFlag(actor, 'FireShield');
             await actor.deleteEmbeddedDocuments("Item", [item.id])
@@ -1357,12 +1357,12 @@ class MidiMacros {
         const DAEItem = lArgs.efData.flags.dae.itemData
 
         if (args[0] === "on") {
-            let weaponDamge = 2 + Math.floor(DAEItem.data.level / 2);
+            let weaponDamge = 2 + Math.floor(DAEItem.system.level / 2);
             await actor.createEmbeddedDocuments("Item",
                 [{
                     "name": "Summoned Flame Blade",
                     "type": "weapon",
-                    "data": {
+                    "system": {
                         "quantity": 1,
                         "activation": {
                             "type": "action",
@@ -1415,7 +1415,7 @@ class MidiMacros {
         if (!game.modules.get("dfreds-convenient-effects")?.active) { ui.notifications.error("Please enable the CE module"); return; }
         const { actor, token, lArgs } = MidiMacros.targets(args)
         const DAEItem = lArgs.efData.flags.dae.itemData
-        const saveData = DAEItem.data.save
+        const saveData = DAEItem.system.save
         let dc = args[1]
 
         if (args[0] === "on") {
@@ -1474,12 +1474,12 @@ class MidiMacros {
 
         async function FleshToStoneUpdate() {
             let fleshToStone = actor.effects.get(lArgs.effectId);
-            let icon = fleshToStone.data.icon;
+            let icon = fleshToStone.icon;
             if (game.modules.get("dfreds-convenient-effects").active) icon = "modules/dfreds-convenient-effects/images/petrified.svg";
             else icon = "icons/svg/paralysis.svg"
-            let label = fleshToStone.data.label;
+            let label = fleshToStone.label;
             label = "Flesh to Stone - Petrified";
-            let time = fleshToStone.data.duration.seconds
+            let time = fleshToStone.duration.seconds
             time = 60000000
             await fleshToStone.update({ icon, label, time });
         }
@@ -1530,7 +1530,7 @@ class MidiMacros {
             let compendium = await pack.getDocument(index._id)
 
             let updates = {
-                token: compendium.data.token,
+                token: compendium.prototypeToken,
                 actor: compendium.toObject()
             }
             updates.token.flags["midi-srd"] = { "GiantInsect": { ActorId: actor.id } }
@@ -1563,8 +1563,8 @@ class MidiMacros {
             await ChatMessage.create({ content: "Heroism ends" });
         }
         if (args[0] === "each") {
-            let bonus = mod > actor.data.data.attributes.hp.temp ? mod : actor.data.data.attributes.hp.temp
-            await actor.update({ "data.attributes.hp.temp": mod });
+            let bonus = mod > actor.system.attributes.hp.temp ? mod : actor.system.attributes.hp.temp
+            await actor.update({ "system.attributes.hp.temp": mod });
             await ChatMessage.create({ content: "Heroism continues on " + actor.name })
         }
     }
@@ -1572,21 +1572,21 @@ class MidiMacros {
     static async laughter(args) {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         const DAEItem = lArgs.efData.flags.dae.itemData
-        const saveData = DAEItem.data.save
+        const saveData = DAEItem.system.save
 
         let caster = canvas.tokens.placeables.find(token => token?.actor?.items.get(DAEItem._id) != null)
 
         if (args[0] === "on") {
-            if (actor.data.data.abilities.int.value < 4) actor.deleteEmbeddedEntity("ActiveEffect", lArgs.efData._id)
+            if (actor.system.abilities.int.value < 4) actor.deleteEmbeddedEntity("ActiveEffect", lArgs.efData._id)
             RollHideousSave(target)
         }
 
         async function RollHideousSave(target) {
             console.log("SetHook")
             const hookId = Hooks.on("preUpdateActor", async (actor, update) => {
-                if (!"actorData.data.attributes.hp" in update) return;
-                let oldHP = actor.data.data.attributes.hp.value;
-                let newHP = getProperty(update, "data.attributes.hp.value");
+                if (!"actorData.system.attributes.hp" in update) return;
+                let oldHP = actor.system.attributes.hp.value;
+                let newHP = getProperty(update, "system.attributes.hp.value");
                 let hpChange = oldHP - newHP
                 if (hpChange > 0 && typeof hpChange === "number") {
                     const flavor = `${CONFIG.DND5E.abilities["wis"]} DC${saveData.dc} ${DAEItem?.name || ""}`;
@@ -1626,7 +1626,7 @@ class MidiMacros {
     static async dance(args) {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         const DAEItem = lArgs.efData.flags.dae.itemData
-        const saveData = DAEItem.data.save
+        const saveData = DAEItem.system.save
         const DC = args[1]
 
         if (args[0] === "each") {
@@ -1675,7 +1675,7 @@ class MidiMacros {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         const DAEItem = lArgs.efData.flags.dae.itemData
 
-        let weapons = actor.items.filter(i => i.data.type === `weapon`);
+        let weapons = actor.itemTypes.weapon
         let weapon_content = ``;
 
         function value_limit(val, min, max) {
@@ -1686,7 +1686,7 @@ class MidiMacros {
             weapon_content += `<label class="radio-label">
                 <input type="radio" name="weapon" value="${weapon.id}">
                 <img src="${weapon.img}" style="border:0px; width: 50px; height:50px;">
-                ${weapon.data.name}
+                ${weapon.name}
             </label>`;
         }
 
@@ -1713,23 +1713,23 @@ class MidiMacros {
                             let itemId = $("input[type='radio'][name='weapon']:checked").val();
                             let weaponItem = actor.items.get(itemId);
                             let copy_item = duplicate(weaponItem);
-                            let spellLevel = Math.floor(DAEItem.data.level / 2);
+                            let spellLevel = Math.floor(DAEItem.system.level / 2);
                             let bonus = value_limit(spellLevel, 1, 3);
-                            let wpDamage = copy_item.data.damage.parts[0][0];
-                            let verDamage = copy_item.data.damage.versatile;
+                            let wpDamage = copy_item.system.damage.parts[0][0];
+                            let verDamage = copy_item.system.damage.versatile;
                             await DAE.setFlag(actor, `magicWeapon`, {
-                                damage: weaponItem.data.data.attackBonus,
+                                damage: weaponItem.system.attackBonus,
                                 weapon: itemId,
                                 weaponDmg: wpDamage,
                                 verDmg: verDamage,
-                                mgc: copy_item.data.properties.mgc
+                                mgc: copy_item.system.properties.mgc
                             }
                             );
-                            if (copy_item.data.attackBonus === "") copy_item.data.attackBonus = "0"
-                            copy_item.data.attackBonus = `${parseInt(copy_item.data.attackBonus) + bonus}`;
-                            copy_item.data.damage.parts[0][0] = (wpDamage + " + " + bonus);
-                            copy_item.data.properties.mgc = true
-                            if (verDamage !== "" && verDamage !== null) copy_item.data.damage.versatile = (verDamage + " + " + bonus);
+                            if (copy_item.system.attackBonus === "") copy_item.system.attackBonus = "0"
+                            copy_item.system.attackBonus = `${parseInt(copy_item.system.attackBonus) + bonus}`;
+                            copy_item.system.damage.parts[0][0] = (wpDamage + " + " + bonus);
+                            copy_item.system.properties.mgc = true
+                            if (verDamage !== "" && verDamage !== null) copy_item.system.damage.versatile = (verDamage + " + " + bonus);
                             await actor.updateEmbeddedDocuments("Item", [copy_item]);
                         }
                     },
@@ -1746,10 +1746,10 @@ class MidiMacros {
             let { damage, weapon, weaponDmg, verDmg, mgc } = DAE.getFlag(actor, 'magicWeapon');
             let weaponItem = actor.items.get(weapon);
             let copy_item = duplicate(weaponItem);
-            copy_item.data.attackBonus = damage;
-            copy_item.data.damage.parts[0][0] = weaponDmg;
-            copy_item.data.properties.mgc = mgc
-            if (verDmg !== "" && verDmg !== null) copy_item.data.damage.versatile = verDmg;
+            copy_item.system.attackBonus = damage;
+            copy_item.system.damage.parts[0][0] = weaponDmg;
+            copy_item.system.properties.mgc = mgc
+            if (verDmg !== "" && verDmg !== null) copy_item.system.damage.versatile = verDmg;
             await actor.updateEmbeddedDocuments("Item", [copy_item]);
             await DAE.unsetFlag(actor, `magicWeapon`);
         }
@@ -1785,7 +1785,7 @@ class MidiMacros {
                 MidiMacros.templateCreation(templateData, actor)
                 async function deleteTemplatesAndMove(template) {
                     MidiMacros.deleteTemplates("MistyStep", actor)
-                    await token.document.update({ x: template.data.x, y: template.data.y }, { animate: false })
+                    await token.document.update({ x: template.document.x, y: template.document.y }, { animate: false })
                     await actor.deleteEmbeddedDocuments("ActiveEffect", [lArgs.effectId]);
                 };
             });
@@ -1797,7 +1797,7 @@ class MidiMacros {
         if (!game.modules.get("advanced-macros")?.active) ui.notifications.error("Please enable the Advanced Macros module")
         const { actor, token, lArgs } = MidiMacros.targets(args)
         const DAEItem = lArgs.efData.flags.dae.itemData
-        const saveData = DAEItem.data.save
+        const saveData = DAEItem.system.save
         const DC = args[1]
 
         if (args[0] === "on") {
@@ -1827,12 +1827,12 @@ class MidiMacros {
                 Hooks.once("createMeasuredTemplate", MidiMacros.deleteTemplates("MoonbeamRange", actor));
                 MidiMacros.templateCreation(templateData, actor)
             })
-            let damage = DAEItem.data.level;
+            let damage = DAEItem.system.level;
             await actor.createEmbeddedDocuments("Item",
                 [{
                     "name": "Moonbeam repeating",
                     "type": "spell",
-                    "data": {
+                    "system": {
                         "source": "Casting Moonbeam",
                         "ability": "",
                         "description": {
@@ -1914,9 +1914,9 @@ class MidiMacros {
                         label: 'Yes',
                         callback: async (html) => {
                             let element = $("input[type='radio'][name='type']:checked").val();
-                            let resistances = actor.data.data.traits.dr.value;
+                            let resistances = actor.system.traits.dr.value;
                             resistances.push(element);
-                            await actor.update({ "data.traits.dr.value": resistances });
+                            await actor.update({ "system.traits.dr.value": resistances });
                             await DAE.setFlag(actor, 'ProtectionFromEnergy', element);
                             await ChatMessage.create({ content: `${actor.name} gains resistance to ${element}` });
                         }
@@ -1926,10 +1926,10 @@ class MidiMacros {
         }
         if (args[0] === "off") {
             let element = DAE.getFlag(actor, 'ProtectionFromEnergy');
-            let resistances = actor.data.data.traits.dr.value;
+            let resistances = actor.system.traits.dr.value;
             const index = resistances.indexOf(element);
             resistances.splice(index, 1);
-            await actor.update({ "data.traits.dr.value": resistances });
+            await actor.update({ "system.traits.dr.value": resistances });
             await DAE.unsetFlag(actor, 'ProtectionFromEnergy');
             await ChatMessage.create({ content: `${actor.name} loses resistance to ${element}` });
         }
@@ -1938,7 +1938,7 @@ class MidiMacros {
     static async rayOfEnfeeblement(args) {
         if (!game.modules.get("advanced-macros")?.active) ui.notifications.error("Please enable the Advanced Macros module")
         const { actor, token, lArgs } = MidiMacros.targets(args)
-        let weapons = actor.items.filter(i => i.data.type === `weapon`);
+        let weapons = actor.itemTypes.weapon;
 
         /**
          * For every str weapon, update the damage formulas to half the damage, set flag of original
@@ -1946,12 +1946,12 @@ class MidiMacros {
         if (args[0] === "on") {
             for (let weapon of weapons) {
                 if (weapon.abilityMod === "str") {
-                    let newWeaponParts = duplicate(weapon.data.data.damage.parts);
+                    let newWeaponParts = duplicate(weapon.system.damage.parts);
                     await weapon.setFlag('world', 'RayOfEnfeeblement', newWeaponParts);
-                    for (let part of weapon.data.data.damage.parts) {
+                    for (let part of weapon.system.damage.parts) {
                         part[0] = `floor((${part[0]})/2)`;
                     }
-                    await weapon.update({ "data.damage.parts": weapon.data.data.damage.parts });
+                    await weapon.update({ "system.damage.parts": weapon.system.damage.parts });
                 }
             }
         }
@@ -1960,7 +1960,7 @@ class MidiMacros {
         if (args[0] === "off") {
             for (let weapon of weapons) {
                 let parts = weapon.getFlag('world', 'RayOfEnfeeblement');
-                await weapon.update({ "data.damage.parts": parts });
+                await weapon.update({ "system.damage.parts": parts });
             }
         }
     }
@@ -1974,9 +1974,9 @@ class MidiMacros {
 
             // If 6s elapses, update HP by one
             const timeHookId = Hooks.on("updateWorldTime", async (currentTime, updateInterval) => {
-                let effect = actor.effects.find(i => i.data.label === "Regenerate");
-                let applyTime = effect.data.duration.startTime;
-                let expireTime = applyTime + effect.data.duration.seconds;
+                let effect = actor.effects.find(i => i.label === "Regenerate");
+                let applyTime = effect.duration.startTime;
+                let expireTime = applyTime + effect.duration.seconds;
                 let healing = roundCount(currentTime, updateInterval, applyTime, expireTime);
                 await actor.applyDamage(-healing);
                 await ChatMessage.create({ content: `${actor.name} gains 1 hp` });
@@ -2036,10 +2036,10 @@ class MidiMacros {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         // we see if the equipped weapons have base weapon set and filter on that, otherwise we just get all weapons
         const filteredWeapons = actor.items
-            .filter((i) => i.data.type === "weapon" && (i.data.data.baseItem === "club" || i.data.data.baseItem === "quarterstaff"));
+            .filter((i) => i.type === "weapon" && (i.system.baseItem === "club" || i.system.baseItem === "quarterstaff"));
         const weapons = (filteredWeapons.length > 0)
             ? filteredWeapons
-            : actor.items.filter((i) => i.data.type === "weapon");
+            : actor.itemTypes.weapon;
 
         const weapon_content = weapons.map((w) => `<option value=${w.id}>${w.name}</option>`).join("");
 
@@ -2066,16 +2066,16 @@ class MidiMacros {
                             await DAE.setFlag(actor, "shillelagh", {
                                 id: itemId,
                                 name: weaponItem.name,
-                                damage: weaponItem.data.data.damage.parts[0][0],
-                                ability: weaponItem.data.data.ability,
-                                magical: getProperty(weaponItem, "data.properties.mgc") || false,
+                                damage: weaponItem.system.damage.parts[0][0],
+                                ability: weaponItem.system.ability,
+                                magical: getProperty(weaponItem, "system.properties.mgc") || false,
                             });
-                            const damage = weaponCopy.data.damage.parts[0][0];
-                            const targetAbilities = actor.data.data.abilities;
-                            weaponCopy.data.damage.parts[0][0] = damage.replace(/1d(4|6)/g, "1d8");
-                            if (targetAbilities.wis.value > targetAbilities.str.value) weaponCopy.data.ability = "wis";
+                            const damage = weaponCopy.system.damage.parts[0][0];
+                            const targetAbilities = actor.system.abilities;
+                            weaponCopy.system.damage.parts[0][0] = damage.replace(/1d(4|6)/g, "1d8");
+                            if (targetAbilities.wis.value > targetAbilities.str.value) weaponCopy.system.ability = "wis";
                             weaponCopy.name = weaponItem.name + " [Shillelagh]";
-                            setProperty(weaponCopy, "data.properties.mgc", true);
+                            setProperty(weaponCopy, "system.properties.mgc", true);
                             await actor.updateEmbeddedDocuments("Item", [weaponCopy]);
                             await ChatMessage.create({
                                 content: weaponCopy.name + " is empowered by Shillelagh",
@@ -2093,10 +2093,10 @@ class MidiMacros {
             const flag = DAE.getFlag(actor, "shillelagh");
             const weaponItem = actor.getEmbeddedDocument("Item", flag.id);
             const weaponCopy = duplicate(weaponItem);
-            weaponCopy.data.damage.parts[0][0] = flag.damage;
-            weaponCopy.data.ability = flag.ability;
+            weaponCopy.system.damage.parts[0][0] = flag.damage;
+            weaponCopy.system.ability = flag.ability;
             weaponCopy.name = flag.name;
-            setProperty(weaponCopy, "data.properties.mgc", flag.magical);
+            setProperty(weaponCopy, "system.properties.mgc", flag.magical);
             await actor.updateEmbeddedDocuments("Item", [weaponCopy]);
             await DAE.unsetFlag(target, "shillelagh");
             await ChatMessage.create({ content: weaponCopy.name + " returns to normal" });
@@ -2138,7 +2138,7 @@ class MidiMacros {
                 [{
                     "name": "Summoned Spiritual Weapon",
                     "type": "weapon",
-                    "data": {
+                    "system": {
                         "equipped": true,
                         "identified": true,
                         "activation": {
@@ -2188,8 +2188,8 @@ class MidiMacros {
             },
             actor: {
                 "name": "Unseen Servant",
-                "data.attributes": { "ac.value": 10, "hp.value": 1 },
-                "data.abilities.str.value" : 2
+                "system.attributes": { "ac.value": 10, "hp.value": 1 },
+                "system.abilities.str.value" : 2
             }
         }
         let { x, y } = await MidiMacros.warpgateCrosshairs(token, 60, "Unseen Servant", texture, {}, -1)
@@ -2214,9 +2214,9 @@ class MidiMacros {
             const hookId = Hooks.on("preUpdateActor", async (actor, update) => {
                 let flag = await DAE.getFlag(actor, "WardingBondIds")
                 if (flag.tokenID !== actor.id) return
-                if (!"actorData.data.attributes.hp" in update) return;
-                let oldHP = actor.data.data.attributes.hp.value;
-                let newHP = getProperty(update, "data.attributes.hp.value");
+                if (!"actorData.system.attributes.hp" in update) return;
+                let oldHP = actor.system.attributes.hp.value;
+                let newHP = getProperty(update, "system.attributes.hp.value");
                 let hpChange = oldHP - newHP
                 if (hpChange > 0 && typeof hpChange === "number") {
                     let caster = game.actors.get(flag.casterID).getActiveTokens()[0]
