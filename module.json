@@ -91,5 +91,5 @@
 	},
     "url": "https://github.com/thatlonelybugbear/midi-srd",
     "manifest": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/module.json",
-    "download": "https://github.com/thatlonelybugbear/midi-srd/releases/download/10.0.4/module.zip"
+    "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip"
 }
