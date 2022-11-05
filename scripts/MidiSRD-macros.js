@@ -2032,7 +2032,7 @@ class MidiMacros {
         }
     }
 
-    static async shillelagh(args) {
+    static async shillelagh(args) {  //@to-do: STR/DEX or general spellcasting.mod
         const { actor, token, lArgs } = MidiMacros.targets(args)
         // we see if the equipped weapons have base weapon set and filter on that, otherwise we just get all weapons
         const filteredWeapons = actor.items
@@ -2149,13 +2149,9 @@ class MidiMacros {
                             "width": null,
                             "type": "creature"
                         },
-                        "range": {
-                            "value": 5,
-                            "units": "ft"
-                        },
                         "ability": args[2],
                         "actionType": "msak",
-                        "attackBonus": "0",
+                        "attackBonus": "",
                         "chatFlavor": "",
                         "critical": null,
                         "damage": {
