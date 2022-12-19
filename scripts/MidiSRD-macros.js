@@ -1578,7 +1578,7 @@ class MidiMacros {
 
         if (args[0] === "on") {
             if (actor.system.abilities.int.value < 4) actor.deleteEmbeddedDocuments("ActiveEffect", [lArgs.efData._id])
-            RollHideousSave(target)
+            RollHideousSave(args[1])
         }
 
         async function RollHideousSave(target) {
