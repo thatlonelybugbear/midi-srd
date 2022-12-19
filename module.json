@@ -7,7 +7,7 @@
 			"name": "Kandashi"
 		}
 	],
-    "version": "10.0.7",
+    "version": "10.0.8",
     "scripts": [
         "scripts/MidiSRD-macros.js"
     ],
