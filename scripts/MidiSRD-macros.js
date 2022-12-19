@@ -1577,7 +1577,7 @@ class MidiMacros {
         let caster = canvas.tokens.placeables.find(token => token?.actor?.items.get(DAEItem._id) != null)
 
         if (args[0] === "on") {
-            if (actor.system.abilities.int.value < 4) actor.deleteEmbeddedEntity("ActiveEffect", lArgs.efData._id)
+            if (actor.system.abilities.int.value < 4) actor.deleteEmbeddedDocuments("ActiveEffect", [lArgs.efData._id])
             RollHideousSave(target)
         }
 
