@@ -1036,7 +1036,7 @@ class MidiMacros {
                             await effect.update({ changes });
                         }
                     },
-                    five: {
+                    six: {
                         label: "Owl's Wisdom",
                         callback: async () => {
                             await ChatMessage.create({ content: `${actor.name} has advantage on Wisdom checks` });
@@ -1610,7 +1610,7 @@ class MidiMacros {
             let flag = await DAE.getFlag(actor, 'hideousLaughterHook');
             Hooks.off("preUpdateActor", flag);
             await DAE.unsetFlag(actor, "hideousLaughterHook");
-            if (args[0] === "off") game.cub.addCondition("Prone", actor)
+            if (args[0] === "off") game.cub?.addCondition("Prone", actor)
         }
 
         if (args[0] === "off") {
