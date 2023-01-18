@@ -1281,7 +1281,7 @@ class MidiMacros {
                                 "system": {
                                     "source": "Fire Shield Spell",
                                     "activation": {
-                                        "type": "special",
+                                        "type": "reactionmanual",
                                         "cost": 0,
                                         "condition": "whenever a creature within 5 feet of you hits you with a melee Attack"
                                     },
