@@ -1,6 +1,6 @@
 ![](https://img.shields.io/badge/Foundry-v10.291-informational)
-[Latest Release Download Count](https://img.shields.io/github/downloads/thatlonelybugbear/midi-srd/latest/module.zip)
-
+![GitHub Releases](https://img.shields.io/github/downloads/thatlonelybugbear/midi-srd/latest/total)
+![GitHub Releases](https://img.shields.io/github/downloads/thatlonelybugbear/midi-srd/total)
 # Midi-SRD
 A compendium pack for SRD items, feats etc configured for use with Dynamic Active Effects as well as Midi QOL.
 
