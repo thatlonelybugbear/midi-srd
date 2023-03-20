@@ -1,4 +1,5 @@
 ![](https://img.shields.io/badge/Foundry-v10.291-informational)
+![](https://img.shields.io/badge/Dnd5e-2.1.x-informational)
 ![GitHub Releases](https://img.shields.io/github/downloads/thatlonelybugbear/midi-srd/latest/total)
 ![GitHub Releases](https://img.shields.io/github/downloads/thatlonelybugbear/midi-srd/total)
 # Midi-SRD
