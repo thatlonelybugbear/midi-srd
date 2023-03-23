@@ -20,7 +20,7 @@
 	},
     "packs": [
         {
-            "name": "Midi SRD Items",
+			"name": "Midi SRD Items",
             "label": "Midi SRD Items",
             "path": "packs/equipment.db",
             "type": "Item",
@@ -86,7 +86,7 @@
     "url": "https://github.com/thatlonelybugbear/midi-srd",
 	"bugs": "https://github.com/thatlonelybugbear/midi-srd/issues",
 	"license": "https://github.com/thatlonelybugbear/midi-srd/blob/master/LICENSE",
-    "manifest": "https://github.com/thatlonelybugbear/midi-srd/releases/download/10.10.1/module.json",
-    "download": "https://github.com/thatlonelybugbear/midi-srd/releases/download/10.10.1/module.zip",
+	"manifest": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/module.json",
+    "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip"
     "changelog": "https://github.com/thatlonelybugbear/midi-srd/blob/master/Changelog.md"
 }
