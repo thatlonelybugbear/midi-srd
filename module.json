@@ -18,8 +18,6 @@
 		"verified": 10,
 		"maximum": 10
 	},
-    "allowBugReporter": true,
-    "bugs": "https://github.com/thatlonelybugbear/midi-srd/issues",
     "packs": [
         {
             "name": "Midi SRD Items",
@@ -42,14 +40,6 @@
             "label": "Midi SRD Feats",
             "path": "packs/feats.db",
             "type": "Item",
-            "module": "Midi SRD",
-            "system": "dnd5e"
-        },
-        {
-            "name": "Midi SRD Macros",
-            "label": "Midi SRD Macros",
-            "path": "packs/Macros.db",
-            "type": "Macro",
             "module": "Midi SRD",
             "system": "dnd5e"
         }
@@ -92,7 +82,11 @@
 			}
 		]
 	},
+	"flags": { "allowBugReporter": true },
     "url": "https://github.com/thatlonelybugbear/midi-srd",
-    "manifest": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/module.json",
-    "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip"
+	"bugs": "https://github.com/thatlonelybugbear/midi-srd/issues",
+	"license": "https://github.com/thatlonelybugbear/midi-srd/blob/master/LICENSE",
+    "manifest": "https://github.com/thatlonelybugbear/midi-srd/releases/download/10.10.1/module.json",
+    "download": "https://github.com/thatlonelybugbear/midi-srd/releases/download/10.10.1/module.zip",
+    "changelog": "https://github.com/thatlonelybugbear/midi-srd/blob/master/Changelog.md"
 }
