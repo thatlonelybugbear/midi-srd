@@ -87,6 +87,6 @@
 	"bugs": "https://github.com/thatlonelybugbear/midi-srd/issues",
 	"license": "https://github.com/thatlonelybugbear/midi-srd/blob/master/LICENSE",
 	"manifest": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/module.json",
-    "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip"
+    "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip",
     "changelog": "https://github.com/thatlonelybugbear/midi-srd/blob/master/Changelog.md"
 }
