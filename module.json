@@ -1,13 +1,12 @@
 {
-    "id": "midi-srd",
+	"id": "midi-srd",
     "title": "Midi SRD",
     "description": "DnD 5e SRD items, features and spells configured for Dynamic Active Effects and Midi QoL",
     "authors":  [
-		{
-			"name": "Kandashi"
-		}
+		{ "name": "Kandashi" },
+		{ "name": "thatlonelybugbear", "url": "https://github.com/thatlonelybugbear", "discord": "thatlonelybugbear#4394", "ko-fi": "https://ko-fi.com/thatlonelybugbear" }
 	],
-    "version": "10.10.0",
+    "version": "10.10.1",
     "scripts": [
         "scripts/MidiSRD-macros.js"
     ],
@@ -62,7 +61,7 @@
 				"type": "system",
 				"compatibility": {
 					"minimum": "2.0.1",
-					"compatible": "2.0.3"
+					"compatible": "2.1.5"
 				}
 			}
 		],
