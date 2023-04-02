@@ -1,4 +1,4 @@
-## v10.10.2 <hl> - small updates
+## v10.10.2 <hl> - small update
   - Small fixes for deletion of items and templates
   - update levitate
 
