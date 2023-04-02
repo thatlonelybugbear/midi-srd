@@ -1,6 +1,6 @@
 ## v10.10.2 <hl> - small update
   - Small fixes for deletion of items and templates
-  - update levitate
+  - update levitate, moonbeam, arcane sword
 
 ## v10.10.1 <hl> - New Beginnings
 - This is an initial v10 compatibility release. <br>Due to some IRL reasons, a bigger update has been delayed and will come out some time next week, when I will be back to base.<br>
