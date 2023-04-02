@@ -131,6 +131,12 @@ class MidiMacros {
         return location
     }
 
+    static hasMutation(token,mutName) {
+        const tokenDoc = token.document ?? token;
+        const stack = warpgate.mutationStack(tokenDoc);
+        return !!stack.getName(mutName)
+    }
+
     static async aid(args) {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         let buf = (parseInt(args[1]) - 1) * 5;
@@ -323,10 +329,8 @@ class MidiMacros {
                     flags: { "midi-srd": { ArcaneSword: { ActorId: actor.id } } },
                     fillColor: game.user.color
                 }
-                Hooks.once("createMeasuredTemplate", deleteTemplates);
-
+                Hooks.once("createMeasuredTemplate", () => {MidiMacros.deleteTemplates("ArcaneSwordRange", actor)});
                 MidiMacros.templateCreation(templateData, actor)
-                MidiMacros.deleteTemplates("ArcaneSwordRange", data)
             })
             await actor.createEmbeddedDocuments("Item",
                 [{
@@ -379,8 +383,8 @@ class MidiMacros {
 
         // Delete Arcane Sword
         if (args[0] === "off") {
-            MidiMacros.deleteItems("ArcaneSword", data)
-            MidiMacros.deleteTemplates("ArcaneSwordRange", data)
+            await MidiMacros.deleteItems("ArcaneSword", actor)
+            await MidiMacros.deleteTemplates("ArcaneSword", actor)
         }
     }
 
@@ -512,8 +516,8 @@ class MidiMacros {
 
         // Delete Flame Blade
         if (args[0] === "off") {
-            MidiMacros.deleteItems("CallLighting", actor)
-            MidiMacros.deleteTemplates("CallLighting", actor)
+            await MidiMacros.deleteItems("CallLighting", actor)
+            await MidiMacros.deleteTemplates("CallLighting", actor)
         }
     }
 
@@ -1407,7 +1411,7 @@ class MidiMacros {
 
         // Delete Flame Blade
         if (args[0] === "off") {
-            MidiMacros.deleteItems("FlameBlade", actor)
+            await MidiMacros.deleteItems("FlameBlade", actor)
         }
     }
 
@@ -1657,16 +1661,131 @@ class MidiMacros {
         }
     }
 
-    static async levitate(args) {
-        if (!game.modules.get("advanced-macros")?.active) ui.notifications.error("Please enable the Advanced Macros module")
-        const { actor, token, lArgs } = MidiMacros.targets(args)
-        if (args[0] === "on") {
-            await ChatMessage.create({ content: `${token.name} is levitated 20ft` });
-            await token.document.update({ "elevation": 20 });
-        }
-        if (args[0] === "off") {
-            await token.document.update({ "elevation": 0 });
-            await ChatMessage.create({ content: `${token.name} is returned to the ground` });
+    static async levitate(args) { //done -maybe stylze the dialog better
+        if (!game.modules.get("warpgate")?.active) return ui.notifications.error("Please enable the Warp Gate module");
+        const initialMutName = "levitationActivation"
+        if (args[0] !== "off" && args[0] !== "on") {
+            const { macroPass, actor, tokenUuid, item, targets } = args[0] ?? {};
+            if(!args[0]) return ui.notifications.error("Something is wrong in the macro of the Item rolled; Notify GM and un-check Item Macros Sheet Hooks option");
+            if (!targets.length) return ui.notifications.error("Please select a target");
+
+            const tokenDoc = fromUuidSync(tokenUuid);
+            const targetDoc = targets[0];
+            const initialTargetUuid = DAE.getFlag(tokenUuid,'levitateMidiSRDTarget');
+
+            if (macroPass === "preItemRoll") {
+                console.log(args[0].targets)
+                
+                if (!initialTargetUuid || initialTargetUuid === targetDoc.uuid) return true;
+                else {  //if (initialTargetUuid !== targetDoc.uuid)
+                    await warpgate.revert(tokenDoc,initialMutName)
+                    await actor.effects.find(eff=>eff.label.toLocaleLowerCase().includes("concentrating"))?.delete()
+                }
+            }
+            if (macroPass === "postActiveEffects") {
+                if (!initialTargetUuid || initialTargetUuid !== targetDoc.uuid) await DAE.setFlag(tokenUuid,'levitateMidiSRDTarget',targetDoc.uuid);
+                const content = `<label for="elev"><b><center>Would that be up or down?</center></b></label><br />
+                                    <input type="range" step="1" min="-20" max="20" id="elev" name="feet" list="values" />
+                                <center><b>Selected value: <output id="value"> ft</output></center></b>
+                                <datalist id="values">
+                                    <option value="-20" label="-20"></option>
+                                    <option value="-10" label="-10"></option>
+                                    <option value="0" label="0"></option>
+                                    <option value="10" label="10"></option>
+                                    <option value="20" label="20"></option>
+                                </datalist>`
+                const result = await Dialog.wait({ 
+                    title: "Let's Float!", 
+                    content: content, 
+                    default:"no",
+                    close: () => {return false},
+                    render:() => {
+                        const value = document.querySelector("#value")
+                        const input = document.querySelector("#elev")
+                        value.textContent = input.value
+                        input.addEventListener("input", (event) => {
+                            value.textContent = event.target.value
+                        })
+                    },
+                    buttons: {
+                        yes: {
+                            icon: '<i class="fas fa-check"></i>',
+                            label: "Float",
+                            callback: () => {
+                                const ft = document.querySelector("#elev").value
+                                return ft;
+                            }
+                        },
+                        no: {
+                            icon: '<i class="fas fa-times"></i>',
+                            label: "Stop concentrating",
+                            callback: async () => {
+                                await actor.effects.find(eff=>eff.label.toLocaleLowerCase().includes("concentrating"))?.delete();
+                                return false;
+                            }
+                        }
+                    },
+                    rejectClose: false
+                });
+                if (result) {
+                    const targetUpdates = targetDoc.actor.effects.find(eff=>eff.label === "Levitating") 
+                        ? {token: {elevation: Number(targetDoc.elevation) + Number(result)}}
+                        : {embedded: {
+                            ActiveEffect:{
+                                ["Levitating"]: {
+                                    duration: {startTime:game.time.worldTime, seconds:600, startRound:game.combat?.round,startTurn:game.combat?.turn},
+                                    icon: "icons/magic/control/debuff-energy-hold-levitate-pink.webp",
+                                    label: "Levitating",
+                                    origin: item.uuid
+                                }
+                            }
+                        },
+                        token: {elevation: Number(targetDoc.elevation) + Number(result)}
+                        }
+                    await warpgate.mutate(targetDoc,targetUpdates,{},{permanent:true});
+                    await ChatMessage.create({ content: `${targetDoc.name} floats at ${targetDoc.elevation} ft` });
+                }
+                if (!result || MidiMacros.hasMutation(tokenDoc,initialMutName)) return;
+                const effectUuid = targetDoc.actor.effects.find(eff=>eff.label==="Levitating").uuid;
+                const activation = targetDoc.uuid === tokenUuid ? {type:'special',cost:''} : item.system.activation;
+                let casterUpdates = {
+                    embedded: {
+                        Item: {
+                            [item.name]: {
+                                name: item.name + ' activated',
+                                system: {
+                                    actionType: 'other',
+                                    activation,
+                                    components:{concentration:false},
+                                    level: 0,
+                                    preparation: {mode: 'atwill', prepared: true},
+                                    save: {ability: '', dc: '', scaling: ''},
+                                    uses: {value: null, max: '', per: '', recovery: ''}
+                                },
+                            }
+                        },
+                    },
+                    actor: {
+                        flags: {
+                            ["midi-qol"]: {
+                                ["concentration-data"]: {removeUuids:[effectUuid]}
+                            },
+                            dae: { levitateMidiSRDTarget: targetDoc.uuid }
+                        }
+                    }
+                }
+                await warpgate.mutate(tokenDoc,casterUpdates,{},{name:initialMutName});
+                casterUpdates = {embedded: {ActiveEffect:{["Concentrating"]:{changes:[{key:"macro.itemMacro",mode:0,value:"ItemMacro.Levitate activated"}]}}}}; //update due to comparisonkey present
+                await warpgate.mutate(tokenDoc,casterUpdates,{},{permanent:true});
+            }
+        }        
+        if (args[0] === "off") {  //the off is when the concentration effect is deleted on the caster.
+            const { actor, token, lArgs } = MidiMacros.targets(args) ?? {};
+            if(!actor || !token || !lArgs) return ui.notifications.error("Something is wrong in the macro of the Item rolled; Notify GM");
+            const targetDoc = fromUuidSync(DAE.getFlag(token.document.uuid,'levitateMidiSRDTarget'));
+            await warpgate.mutate(targetDoc,{token:{elevation: 0}},{},{permanent:true});
+            await ChatMessage.create({ content: `${targetDoc.name} is returned to the ground` });
+            return await warpgate.revert(token.document,initialMutName);
         }
     }
 
@@ -1794,7 +1913,7 @@ class MidiMacros {
 
     static async moonbeam(args) {
         //DAE Item Macro Execute, Effect Value = @attributes.spelldc
-        if (!game.modules.get("advanced-macros")?.active) ui.notifications.error("Please enable the Advanced Macros module")
+      //  if (!game.modules.get("advanced-macros")?.active) ui.notifications.error("Please enable the Advanced Macros module")
         const { actor, token, lArgs } = MidiMacros.targets(args)
         const DAEItem = lArgs.efData.flags.dae.itemData
         const saveData = DAEItem.system.save
@@ -1824,7 +1943,7 @@ class MidiMacros {
                     },
                     fillColor: game.user.color
                 }
-                Hooks.once("createMeasuredTemplate", MidiMacros.deleteTemplates("MoonbeamRange", actor));
+                Hooks.once("createMeasuredTemplate", () => {MidiMacros.deleteTemplates("MoonbeamRange", actor)});
                 MidiMacros.templateCreation(templateData, actor)
             })
             let damage = DAEItem.system.level;
@@ -1862,11 +1981,10 @@ class MidiMacros {
                     "effects": []
                 }]
             );
-            ;
         }
         if (args[0] === "off") {
-            MidiMacros.deleteItems("Moonbeam", actor)
-            MidiMacros.deleteTemplates("Moonbeam", actor)
+            await MidiMacros.deleteItems("Moonbeam", actor)
+            await MidiMacros.deleteTemplates("Moonbeam", actor)
         }
     }
 
@@ -2131,7 +2249,7 @@ class MidiMacros {
                     flags: { "midi-srd": { SpiritualWeapon: { ActorId: actor.id } } },
                     fillColor: game.user.color
                 }
-                Hooks.once("createMeasuredTemplate", MidiMacros.deleteTemplates("SpiritualWeaponRange", actor));
+                Hooks.once("createMeasuredTemplate", () => {MidiMacros.deleteTemplates("SpiritualWeaponRange", actor)});
                 MidiMacros.templateCreation(templateData, actor)
             })
             await actor.createEmbeddedDocuments("Item",
@@ -2168,8 +2286,8 @@ class MidiMacros {
             ui.notifications.notify("Weapon created in your inventory")
         }
         if (args[0] === "off") {
-            MidiMacros.deleteItems("SpiritualWeapon", actor)
-            MidiMacros.deleteTemplates("SpiritualWeapon", actor)
+            await MidiMacros.deleteItems("SpiritualWeapon", actor)
+            await MidiMacros.deleteTemplates("SpiritualWeapon", actor)
         }
     }
 
