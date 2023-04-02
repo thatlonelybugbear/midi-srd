@@ -6,7 +6,7 @@
 		{ "name": "Kandashi" },
 		{ "name": "thatlonelybugbear", "url": "https://github.com/thatlonelybugbear", "discord": "thatlonelybugbear#4394", "ko-fi": "https://ko-fi.com/thatlonelybugbear" }
 	],
-    "version": "10.10.1",
+    "version": "10.10.2",
     "scripts": [
         "scripts/MidiSRD-macros.js"
     ],
