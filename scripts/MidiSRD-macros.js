@@ -45,7 +45,7 @@ class MidiMacros {
      * @param {Actor5e} actor 
      */
     static async deleteItems(flagName, actor) {
-        let items = actor.items.filter(i => i.flags["midi-srd"]?.[flagName] === actor.id)
+        let items = actor.items.filter(i => i.flags["midi-srd"]?.[flagName]?.ActorId === actor.id)
         let itemArray = items.map(function (w) { return w._id })
         if (itemArray.length > 0) await actor.deleteEmbeddedDocuments("Item", itemArray);
     }
@@ -371,8 +371,9 @@ class MidiMacros {
                     },
                     "flags": {
                         "midi-srd": {
-                            "ArcaneSword":
-                                actor.id
+                            "ArcaneSword": {
+                                "ActorId": actor.id
+                            }
                         }
                     },
                     "img": image,
@@ -1396,12 +1397,7 @@ class MidiMacros {
                         "weaponType": "simpleM",
                         "proficient": true,
                     },
-                    "flags": {
-                        "midi-srd": {
-                            "FlameBlade":
-                                actor.id
-                        }
-                    },
+                    "flags": { "midi-srd": { "FlameBlade": { "ActorId": actor.id } } },
                     "img": DAEItem.img,
                     "effects": []
                 }]
@@ -2278,7 +2274,7 @@ class MidiMacros {
                         "weaponType": "simpleM",
                         "proficient": true
                     },
-                    "flags": { "midi-srd": { "SpiritualWeapon": actor.id } },
+                    "flags": { "midi-srd": { "SpiritualWeapon": { "ActorId": actor.id } } },
                     "img": `${image}`,
                     "effects": []
                 }],
