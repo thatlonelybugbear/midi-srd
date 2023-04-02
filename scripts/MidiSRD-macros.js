@@ -337,6 +337,7 @@ class MidiMacros {
                     "name": "Summoned Arcane Sword",
                     "type": "weapon",
                     "system": {
+                        "equipped": true,
                         "quantity": 1,
                         "activation": {
                             "type": "action",
@@ -500,8 +501,8 @@ class MidiMacros {
                         "level": 0,
                         "school": "abj",
                         "preparation": {
-                            "mode": "prepared",
-                            "prepared": false
+                            "mode": "atwill",
+                            "prepared": true
                         },
                         "scaling": {
                             "mode": "none",
@@ -1368,6 +1369,7 @@ class MidiMacros {
                     "name": "Summoned Flame Blade",
                     "type": "weapon",
                     "system": {
+                        "equipped": true,
                         "quantity": 1,
                         "activation": {
                             "type": "action",
@@ -1967,8 +1969,8 @@ class MidiMacros {
                         "level": 0,
                         "school": "abj",
                         "preparation": {
-                            "mode": "prepared",
-                            "prepared": false
+                            "mode": "atwill",
+                            "prepared": true
                         },
 
                     },
