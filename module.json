@@ -14,9 +14,9 @@
         "scripts/midiSRD-styles.css"
     ],
     "compatibility": {
-		"minimum": 10.286,
-		"verified": 11.299,
-		"maximum": 11
+		"minimum": "10.286",
+		"verified": "11.299",
+		"maximum": "11.999"
 	},
     "packs": [
         {
