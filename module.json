@@ -6,7 +6,7 @@
 		{ "name": "Kandashi" },
 		{ "name": "thatlonelybugbear", "url": "https://github.com/thatlonelybugbear", "discord": "thatlonelybugbear#4394", "ko-fi": "https://ko-fi.com/thatlonelybugbear" }
 	],
-    "version": "10.10.2",
+    "version": "11.0.0",
     "scripts": [
         "scripts/MidiSRD-macros.js"
     ],
@@ -14,9 +14,9 @@
         "scripts/midiSRD-styles.css"
     ],
     "compatibility": {
-		"minimum": 10.286,
-		"verified": 10,
-		"maximum": 10
+		"minimum": "10.286",
+		"verified": "11.300",
+		"maximum": "11"
 	},
     "packs": [
         {
