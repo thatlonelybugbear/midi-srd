@@ -19,7 +19,7 @@
 		"maximum": "11"
 	},
     "packs": [
-        {
+        {	
 			"name": "Midi SRD Items",
             "label": "Midi SRD Items",
             "path": "packs/equipment.db",
@@ -62,10 +62,6 @@
 			},
 			{
 				"id": "midi-qol",
-				"type": "module"
-			},
-			{
-				"id": "advanced-macros",
 				"type": "module"
 			},
 			{
