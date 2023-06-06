@@ -1,3 +1,6 @@
+## v11.0.0 <hl> - 11th hour
+  - Compatibility bump for Foundry v11 (more updates to come soon)
+
 ## v10.10.2 <hl> - small update
   - Small fixes for deletion of items and templates
   - update levitate, moonbeam, arcane sword
