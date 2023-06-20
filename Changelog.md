@@ -1,3 +1,7 @@
+## v11.0.1 <hl> - Darkness
+  - Fix for darkness
+  - compatibility bump for Foundry v11.302 and dnd5e 2.2.1
+
 ## v11.0.0 <hl> - 11th hour
   - Compatibility bump for Foundry v11 (more updates to come soon)
 
