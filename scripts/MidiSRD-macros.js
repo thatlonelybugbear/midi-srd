@@ -864,8 +864,8 @@ class MidiMacros {
             };
 
             Hooks.once("createMeasuredTemplate", async (template) => {
-                let radius = canvas.grid.size * (template.document.distance / canvas.grid.grid.options.dimensions.distance)
-                circleWall(template.document.x, template.document.y, radius)
+                let radius = canvas.grid.size * (template.distance / canvas.grid.grid.options.dimensions.distance)
+                circleWall(template.x, template.y, radius)
 
                 await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", [template.id]);
             });
