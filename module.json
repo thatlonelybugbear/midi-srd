@@ -6,7 +6,7 @@
 		{ "name": "Kandashi" },
 		{ "name": "thatlonelybugbear", "url": "https://github.com/thatlonelybugbear", "discord": "thatlonelybugbear#4394", "ko-fi": "https://ko-fi.com/thatlonelybugbear" }
 	],
-    "version": "11.0.0",
+    "version": "11.0.1",
     "scripts": [
         "scripts/MidiSRD-macros.js"
     ],
@@ -15,12 +15,12 @@
     ],
     "compatibility": {
 		"minimum": "10.286",
-		"verified": "11.300",
+		"verified": "11.302",
 		"maximum": "11"
 	},
     "packs": [
         {	
-			"name": "Midi SRD Items",
+	"name": "Midi SRD Items",
             "label": "Midi SRD Items",
             "path": "packs/equipment.db",
             "type": "Item",
@@ -51,7 +51,7 @@
 				"type": "system",
 				"compatibility": {
 					"minimum": "2.0.1",
-					"compatible": "2.1.5"
+					"compatible": "2.2.1"
 				}
 			}
 		],
