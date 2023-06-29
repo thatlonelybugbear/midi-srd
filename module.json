@@ -6,8 +6,8 @@
 		{ "name": "Kandashi" },
 		{ "name": "thatlonelybugbear", "url": "https://github.com/thatlonelybugbear", "discord": "thatlonelybugbear#4394", "ko-fi": "https://ko-fi.com/thatlonelybugbear" }
 	],
-    "version": "11.0.0",
-    "scripts": [
+    "version": "11.1.0",
+    "esmodules": [
         "scripts/MidiSRD-macros.js"
     ],
     "styles": [
@@ -58,11 +58,20 @@
 		"requires": [
 			{
 				"id": "dae",
-				"type": "module"
+				"type": "module",
+				"manifest": "https://gitlab.com/tposney/dae/raw/v10/package/module.json",
+				"compatibility": {
+					"verified": "10.0.23"
+				}
 			},
 			{
 				"id": "midi-qol",
-				"type": "module"
+				"type": "module",
+				"manifest": "https://gitlab.com/tposney/midi-qol/raw/v10/package/module.json",
+				"compatibility": {
+					"verified": "10.0.49",
+					"minimum": "10.0.46"
+				}
 			},
 			{
 				"id": "foundryvtt-simple-calendar",
@@ -74,7 +83,12 @@
 			},
 			{
 				"id": "warpgate",
-				"type": "module"
+				"type": "module",
+				"manifest": "https://github.com/trioderegion/warpgate/releases/latest/download/module.json",
+				"compatibility": {
+					"verified": "1.17.2",
+					"minimum": "1.17.2"
+				}
 			}
 		]
 	},
