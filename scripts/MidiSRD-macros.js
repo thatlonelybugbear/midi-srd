@@ -1,6 +1,7 @@
 class MidiMacros {
 
     static targets(args) {
+        console.log(args)
         const lastArg = args[args.length - 1];
         let tactor, ttoken;
         if (lastArg.tokenId) {
