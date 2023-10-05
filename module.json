@@ -93,10 +93,10 @@
 		]
 	},
 	"flags": { "allowBugReporter": true },
-    "url": "https://github.com/thatlonelybugbear/midi-srd",
+  "url": "https://github.com/thatlonelybugbear/midi-srd",
 	"bugs": "https://github.com/thatlonelybugbear/midi-srd/issues",
 	"license": "https://github.com/thatlonelybugbear/midi-srd/blob/master/LICENSE",
 	"manifest": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/module.json",
-    "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip",
-    "changelog": "https://github.com/thatlonelybugbear/midi-srd/blob/master/Changelog.md"
+  "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip",
+  "changelog": "https://github.com/thatlonelybugbear/midi-srd/blob/master/Changelog.md"
 }
