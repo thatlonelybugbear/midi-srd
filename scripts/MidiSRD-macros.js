@@ -1562,16 +1562,12 @@ class MidiMacros {
     static async heroism(args) {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         let mod = args[1];
-        if (args[0] === "on") {
-            await ChatMessage.create({ content: `Heroism is applied to ${actor.name}` })
-        }
         if (args[0] === "off") {
-            await ChatMessage.create({ content: "Heroism ends" });
-        }
-        if (args[0] === "each") {
-            let bonus = mod > actor.system.attributes.hp.temp ? mod : actor.system.attributes.hp.temp
+            await ChatMessage.create({ content: `The <i>heroism</i> spell on ${actor.name} ends. (Remember to remove any remaining temporary hit points it granted.)` });
+        } else if (args[0] === "each" && mod > actor.system.attributes.hp.temp) {
             await actor.update({ "system.attributes.hp.temp": mod });
-            await ChatMessage.create({ content: "Heroism continues on " + actor.name })
+            await ChatMessage.create({ content: `${actor.name} gains ${mod} temporary hit points due to <i>heroism</i>.` })
+
         }
     }
 
