@@ -51,7 +51,8 @@
 				"type": "system",
 				"compatibility": {
 					"minimum": "2.0.1",
-					"compatible": "2.2.1"
+					"compatible": "2.2.1",
+					"maximum": "2.4.1"
 				}
 			}
 		],
