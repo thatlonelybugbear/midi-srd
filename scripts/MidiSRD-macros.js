@@ -942,134 +942,138 @@ class MidiMacros {
     }
 
     static async enhanceAbility(args) {
-        const { actor, token, lArgs } = MidiMacros.targets(args)
+        const caster = args[0].actor;
+        const targetActors = args[0].targets.map(target => target.actor);
+        const item = args[0].item;
 
-        if (args[0] === "on") {
-            new Dialog({
-                title: "Choose enhance ability effect for " + actor.name,
-                buttons: {
-                    one: {
-                        label: "Bear's Endurance",
-                        callback: async () => {
-                            let formula = `2d6`;
-                            let amount = new Roll(formula).roll().total;
-                            await DAE.setFlag(actor, 'enhanceAbility', {
-                                name: "bear",
-                            });
-                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
-                            let changes = effect.changes;
-                            changes[1] = {
-                                key: "flags.midi-qol.advantage.ability.save.con",
-                                mode: 0,
-                                priority: 20,
-                                value: `1`,
-                            }
-                            await effect.update({ changes });
-                            await ChatMessage.create({ content: `${actor.name} gains ${amount} temp Hp` });
-                            await actor.update({ "system.attributes.hp.temp": amount });
-                        }
-                    },
-                    two: {
-                        label: "Bull's Strength",
-                        callback: async () => {
-                            await ChatMessage.create({ content: `${actor.name}'s encumberance is doubled` });
-                            await DAE.setFlag(actor, 'enhanceAbility', {
-                                name: "bull",
-                            });
-                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
-                            let changes = effect.changes;
-                            changes[1] = {
-                                key: "flags.midi-qol.advantage.ability.check.str",
-                                mode: 0,
-                                priority: 20,
-                                value: `1`,
-                            }
-                            await effect.update({ changes });
-                            await actor.setFlag('dnd5e', 'powerfulBuild', true);
-                        }
-                    },
-                    three: {
-                        label: "Cat's Grace",
-                        callback: async () => {
-                            await ChatMessage.create({ content: `${actor.name} doesn't take damage from falling 20 feet or less if it isn't incapacitated.` });
-                            await DAE.setFlag(actor, 'enhanceAbility', {
-                                name: "cat",
-                            });
-                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
-                            let changes = effect.changes;
-                            changes[1] = {
-                                key: "flags.midi-qol.advantage.ability.check.dex",
-                                mode: 0,
-                                priority: 20,
-                                value: `1`,
-                            }
-                            await effect.update({ changes });
-                        }
-                    },
-                    four: {
-                        label: "Eagle's Splendor",
-                        callback: async () => {
-                            await ChatMessage.create({ content: `${actor.name} has advantage on Charisma checks` });
-                            await DAE.setFlag(actor, 'enhanceAbility', {
-                                name: "eagle",
-                            });
-                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
-                            let changes = effect.changes;
-                            changes[1] = {
-                                key: "flags.midi-qol.advantage.ability.check.cha",
-                                mode: 0,
-                                priority: 20,
-                                value: `1`,
-                            }
-                            await effect.update({ changes });
-                        }
-                    },
-                    five: {
-                        label: "Fox's Cunning",
-                        callback: async () => {
-                            await ChatMessage.create({ content: `${actor.name} has advantage on Intelligence checks` });
-                            await DAE.setFlag(actor, 'enhanceAbility', {
-                                name: "fox",
-                            });
-                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
-                            let changes = effect.changes;
-                            changes[1] = {
-                                key: "flags.midi-qol.advantage.ability.check.int",
-                                mode: 0,
-                                priority: 20,
-                                value: `1`,
-                            }
-                            await effect.update({ changes });
-                        }
-                    },
-                    six: {
-                        label: "Owl's Wisdom",
-                        callback: async () => {
-                            await ChatMessage.create({ content: `${actor.name} has advantage on Wisdom checks` });
-                            await DAE.setFlag(actor, 'enhanceAbility', {
-                                name: "owl",
-                            });
-                            let effect = actor.effects.find(i => i.label === "Enhance Ability");
-                            let changes = effect.changes;
-                            changes[1] = {
-                                key: "flags.midi-qol.advantage.ability.check.wis",
-                                mode: 0,
-                                priority: 20,
-                                value: `1`,
-                            }
-                            await effect.update({ changes });
-                        }
+        await Dialog.prompt({
+            title: "Enhance Ability",
+            content: `
+                <style>
+                    #selectionPrompt {
+                        margin-bottom: 1em;
                     }
-                }
-            }).render(true);
-        }
+                    #selectionPrompt label {
+                        flex: 0 0 120px;
+                    }
+                    #selectionPrompt select {
+                      margin-top: 10px;
+                      margin-bottom: 10px;
+                    }
+                    #selectionPromptDescriptions {
+                        flex-direction: column;
+                    }
+                </style>
 
-        if (args[0] === "off") {
-            let flag = DAE.getFlag(actor, 'enhanceAbility');
-            if (flag.name === "bull") actor.unsetFlag('dnd5e', 'powerfulBuild', false);
-            await DAE.unsetFlag(actor, 'enhanceAbility');
-            await ChatMessage.create({ content: "Enhance Ability has expired" });
-        }
+                <form id="selectionPrompt" onsubmit="event.preventDefault()">
+                    <div class="form-group">
+                        <label for="enhanceAbilityEffect">Chosen effect:</label>
+                        <div class='form-fields'>
+                            <select name="enhanceAbilityEffect">
+                                <option value="Bear's Endurance">Bear's Endurance</option>
+                                <option value="Bull's Strength">Bull's Strength</option>
+                                <option value="Cat's Grace">Cat's Grace</option>
+                                <option value="Eagle's Splendor">Eagle's Splendor</option>
+                                <option value="Fox's Cunning">Fox's Cunning</option>
+                                <option value="Owl's Wisdom">Owl's Wisdom
+                            </select>
+                        </div>
+                    </div>
+                    <div class="selectionPromptDescriptions">
+                        <p><b>Bear's Endurance.</b> The target has advantage on Constitution checks. It also gains 2d6 temporary hit points, which are lost when the spell ends.</p>
+                        <p><b>Bull's Strength.</b> The target has advantage on Strength checks, and his or her carrying capacity doubles.</p>
+                        <p><b>Cat's Grace.</b> The target has advantage on Dexterity checks. It also doesn't take damage from falling 20 feet or less if it isn't incapacitated.</p>
+                        <p><b>Eagle's Splendor.</b> The target has advantage on Charisma checks.</p>
+                        <p><b>Fox's Cunning.</b> The target has advantage on Intelligence checks.</p>
+                        <p><b>Owl's Wisdom.</b> The target has advantage on Wisdom checks.</p>
+                    </div>
+                </form>`,
+            label: "Select effect",
+            callback: async (html) => {
+                const selection = html.find('[name="enhanceAbilityEffect"]').val();
+                const enhanceAbilityEffect = {
+                    disabled: false,
+                    duration: {
+                        startTime: game.time.worldTime,
+                        seconds: 3600,
+                    },
+                    origin: item.uuid,
+                    icon: item.img,
+                    label: `Enhance Ability (${selection})`,
+                };
+                if (selection === "Bear's Endurance") {
+                    const tempHPRoll = await new Roll("2d6").evaluate({ async: false });
+                    tempHPRoll.toMessage({
+                        flavor: "Bear's Endurance: temporary hit points",
+                        speaker: {
+                            alias: caster.name,
+                        },
+                    });
+                    targetActors.forEach(async (actor) => {
+                        if (actor.system.attributes.hp.temp < tempHPRoll.total) {
+                            await actor.update({ "system.attributes.hp.temp": tempHPRoll.total });
+                        }
+                    });
+                    enhanceAbilityEffect.changes = [{
+                        key: "flags.midi-qol.advantage.ability.check.con",
+                        mode: 0,
+                        priority: 20,
+                        value: "1",
+                    }];
+                } else if (selection === "Bull's Strength") {
+                    enhanceAbilityEffect.changes = [{
+                        key: "flags.midi-qol.advantage.ability.check.str",
+                        mode: 0,
+                        priority: 20,
+                        value: "1",
+                    },
+                    {
+                        key: "system.attributes.encumbrance.max",
+                        mode: 1,
+                        priority: 20,
+                        value: "2",
+                    }];
+                } else if (selection === "Cat's Grace") {
+                    enhanceAbilityEffect.changes = [{
+                        key: "flags.midi-qol.advantage.ability.check.dex",
+                        mode: 0,
+                        priority: 20,
+                        value: "1",
+                    }];
+                } else if (selection === "Eagle's Splendor") {
+                    enhanceAbilityEffect.changes = [{
+                        key: "flags.midi-qol.advantage.ability.check.cha",
+                        mode: 0,
+                        priority: 20,
+                        value: "1",
+                    }];
+                } else if (selection === "Fox's Cunning") {
+                    enhanceAbilityEffect.changes = [{
+                        key: "flags.midi-qol.advantage.ability.check.int",
+                        mode: 0,
+                        priority: 20,
+                        value: "1",
+                    }];
+                } else if (selection === "Owl's Wisdom") {
+                    enhanceAbilityEffect.changes = [{
+                        key: "flags.midi-qol.advantage.ability.check.wis",
+                        mode: 0,
+                        priority: 20,
+                        value: "1",
+                    }];
+                } else {
+                    ui.notifications.warning("Unknown <i>enhance ability</i> selection; no effects applied.");
+                    return;
+                }
+
+                targetActors.forEach(async (actor) => {
+                    await actor.createEmbeddedDocuments("ActiveEffect", [enhanceAbilityEffect]);
+                    await DAE.setFlag(actor, "enhanceAbility", {
+                        name: selection,
+                    });
+                });
+            },
+        });
     }
 
     static async enlargeReduce(args) {
@@ -1558,16 +1562,12 @@ class MidiMacros {
     static async heroism(args) {
         const { actor, token, lArgs } = MidiMacros.targets(args)
         let mod = args[1];
-        if (args[0] === "on") {
-            await ChatMessage.create({ content: `Heroism is applied to ${actor.name}` })
-        }
         if (args[0] === "off") {
-            await ChatMessage.create({ content: "Heroism ends" });
-        }
-        if (args[0] === "each") {
-            let bonus = mod > actor.system.attributes.hp.temp ? mod : actor.system.attributes.hp.temp
+            await ChatMessage.create({ content: `The <i>heroism</i> spell on ${actor.name} ends. (Remember to remove any remaining temporary hit points it granted.)` });
+        } else if (args[0] === "each" && mod > actor.system.attributes.hp.temp) {
             await actor.update({ "system.attributes.hp.temp": mod });
-            await ChatMessage.create({ content: "Heroism continues on " + actor.name })
+            await ChatMessage.create({ content: `${actor.name} gains ${mod} temporary hit points due to <i>heroism</i>.` })
+
         }
     }
 
