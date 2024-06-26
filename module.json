@@ -1,50 +1,46 @@
 {
 	"id": "midi-srd",
-    "title": "Midi SRD",
-    "description": "DnD 5e SRD items, features and spells configured for Dynamic Active Effects and Midi QoL",
-    "authors":  [
+	"title": "Midi SRD",
+	"description": "DnD 5e SRD items, features and spells configured for Dynamic Active Effects and Midi QoL",
+	"authors": [
 		{ "name": "Kandashi" },
 		{ "name": "thatlonelybugbear", "url": "https://github.com/thatlonelybugbear", "discord": "thatlonelybugbear#4394", "ko-fi": "https://ko-fi.com/thatlonelybugbear" }
 	],
-    "version": "11.0.0",
-    "scripts": [
-        "scripts/MidiSRD-macros.js"
-    ],
-    "styles": [
-        "scripts/midiSRD-styles.css"
-    ],
-    "compatibility": {
+	"version": "11.315241.1",
+	"scripts": ["scripts/MidiSRD-macros.js"],
+	"styles": ["scripts/midiSRD-styles.css"],
+	"compatibility": {
 		"minimum": "10.286",
 		"verified": "11.302",
 		"maximum": "11"
 	},
-    "packs": [
-        {	
-	"name": "Midi SRD Items",
-            "label": "Midi SRD Items",
-            "path": "packs/equipment.db",
-            "type": "Item",
-            "module": "Midi SRD",
-            "system": "dnd5e"
-        },
-        {
-            "name": "Midi SRD Spells",
-            "label": "Midi SRD Spells",
-            "path": "packs/spells.db",
-            "type": "Item",
-            "module": "Midi SRD",
-            "system": "dnd5e"
-        },
-        {
-            "name": "Midi SRD Feats",
-            "label": "Midi SRD Feats",
-            "path": "packs/feats.db",
-            "type": "Item",
-            "module": "Midi SRD",
-            "system": "dnd5e"
-        }
-    ],
-    "relationships": {
+	"packs": [
+		{
+			"name": "Midi SRD Items",
+			"label": "Midi SRD Items",
+			"path": "packs/equipment.db",
+			"type": "Item",
+			"module": "Midi SRD",
+			"system": "dnd5e"
+		},
+		{
+			"name": "Midi SRD Spells",
+			"label": "Midi SRD Spells",
+			"path": "packs/spells.db",
+			"type": "Item",
+			"module": "Midi SRD",
+			"system": "dnd5e"
+		},
+		{
+			"name": "Midi SRD Feats",
+			"label": "Midi SRD Feats",
+			"path": "packs/feats.db",
+			"type": "Item",
+			"module": "Midi SRD",
+			"system": "dnd5e"
+		}
+	],
+	"relationships": {
 		"systems": [
 			{
 				"id": "dnd5e",
@@ -80,10 +76,10 @@
 		]
 	},
 	"flags": { "allowBugReporter": true },
-    "url": "https://github.com/thatlonelybugbear/midi-srd",
+	"url": "https://github.com/thatlonelybugbear/midi-srd",
 	"bugs": "https://github.com/thatlonelybugbear/midi-srd/issues",
-	"license": "https://github.com/thatlonelybugbear/midi-srd/blob/master/LICENSE",
-	"manifest": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/module.json",
-    "download": "https://github.com/thatlonelybugbear/midi-srd/archive/refs/heads/master.zip",
-    "changelog": "https://github.com/thatlonelybugbear/midi-srd/blob/master/Changelog.md"
+	"license": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/LICENSE",
+	"manifest": "https://github.com/thatlonelybugbear/midi-srd/releases/latest/download/module.json",
+	"download": "https://github.com/thatlonelybugbear/midi-srd/releases/download/v11.315241.1/module.zip",
+	"changelog": "https://raw.githubusercontent.com/thatlonelybugbear/midi-srd/master/Changelog.md"
 }
