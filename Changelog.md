@@ -1,3 +1,7 @@
+## v11.315241.1
+- Changing the current compatibility to 5e 2.4.1 and v11.
+- An update for newer versions will follow
+
 ## v11.0.1 <hl> - Darkness
   - Fix for darkness
   - compatibility bump for Foundry v11.302 and dnd5e 2.2.1
